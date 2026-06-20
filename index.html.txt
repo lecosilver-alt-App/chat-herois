@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chat Global - Heróis no Tempo</title>
+    <!-- Carregando o Firebase Clássico -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        body { background-color: #0d0d12; color: #ffffff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; }
+        .header { background: #1a1a24; padding: 15px; text-align: center; border-bottom: 3px solid #00d2ff; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); }
+        .header h1 { margin: 0; font-size: 1.2rem; letter-spacing: 1px; text-transform: uppercase; }
+        .header span { color: #00d2ff; }
+        .chat-container { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .message { background: #252533; padding: 10px 15px; border-radius: 8px; max-width: 85%; word-wrap: break-word; border-left: 3px solid #ff0055; }
+        .message .username { font-weight: bold; color: #00d2ff; font-size: 0.85rem; margin-bottom: 5px; display: block; }
+        .input-area { display: flex; padding: 15px; background: #1a1a24; border-top: 1px solid #333; }
+        input[type="text"] { flex: 1; padding: 12px; border: none; border-radius: 5px; margin-right: 10px; background: #0d0d12; color: white; font-size: 1rem; }
+        input[type="text"]:focus { outline: none; border: 1px solid #00d2ff; }
+        button { background: linear-gradient(45deg, #00d2ff, #3a7bd5); color: #fff; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Chat Global <span>Heróis no Tempo</span></h1>
+    </div>
+
+    <div class="chat-container" id="chat-box"></div>
+
+    <div class="input-area">
+        <input type="text" id="name-input" placeholder="Seu Nick" style="flex: 0.3;">
+        <input type="text" id="msg-input" placeholder="Mensagem...">
+        <button onclick="sendMessage()">Enviar</button>
+    </div>
+
+    <script>
+        // Suas configurações do Firebase copiadas da imagem
+        const firebaseConfig = {
+            apiKey: "AIzaSyDWMpbpLUGXpAU8ub_9b0Ti0lWdYQl0ORA",
+            authDomain: "chat-apk-alex-f.firebaseapp.com",
+            databaseURL: "https://chat-apk-alex-f-default-rtdb.firebaseio.com",
+            projectId: "chat-apk-alex-f",
+            storageBucket: "chat-apk-alex-f.firebasestorage.app",
+            messagingSenderId: "327918514106",
+            appId: "1:327918514106:web:b61c63f4009b500bf67783"
+        };
+        
+        // Inicializa o Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const chatBox = document.getElementById('chat-box');
+        const msgInput = document.getElementById('msg-input');
+        const nameInput = document.getElementById('name-input');
+
+        // Função para enviar mensagem
+        function sendMessage() {
+            const text = msgInput.value.trim();
+            const username = nameInput.value.trim() || "Anônimo";
+
+            if (text !== "") {
+                db.ref("mensagens").push({
+                    nome: username,
+                    texto: text,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+                msgInput.value = '';
+            }
+        }
+
+        // Fica escutando novas mensagens
+        db.ref("mensagens").on("child_added", function(snapshot) {
+            const msgData = snapshot.val();
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message';
+            msgDiv.innerHTML = `<span class="username">${msgData.nome}</span> ${msgData.texto}`;
+            
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+        
+        // Enviar com a tecla "Enter"
+        msgInput.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
